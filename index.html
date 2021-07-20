@@ -1,0 +1,75 @@
+<html>
+    <head>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:700,600' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="./assets/styles.css">
+       
+    </head>
+    <body>
+        <form>
+        <div class="box">
+        <h1>Dashboard</h1>
+
+        <input id="emailId" type="email" name="email" placeholder="email"  class="email" />
+        <input id="passwordId" type="password" name="email" placeholder="password"  class="email" />
+        <a><div id="btn1" class="btn">Sign In</div></a> <!-- End Btn -->
+
+        <a><div id="btn2">Sign Up</div></a> <!-- End Btn2 -->
+        </div> <!-- End Box -->
+        </form>
+        
+        <p>Forgot your password? <u style="color:#f1c40f;">Click Here!</u></p>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js" type="text/javascript"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://kit.fontawesome.com/c939d0e917.js"></script>
+        <script>
+            function field_focus(field, email)
+            {
+                if(field.value == email)
+                {
+                field.value = '';
+                }
+            }
+
+            function field_blur(field, email)
+            {
+                if(field.value == '')
+                {
+                field.value = email;
+                }
+            }
+
+            //Fade in dashboard box
+            $(document).ready(function(){
+                $('.box').hide().fadeIn(1000);
+                });
+
+            //Stop click event
+            $('a').click(function(event){
+                event.preventDefault(); 
+                });
+
+            $("#btn1").click(function(event){
+                let proctor = {"proctor1": "pass"}
+                let candidate = {"can1": "pass1", "can2": "pass2", "can3": "pass3", "can4": "pass4", "can5": "pass5", "can6": "pass6"}
+                console.log(proctor[$("#emailId").val()] + ' + $("#passwordId").val())
+                if(proctor[$("#emailId").val()] == $("#passwordId").val()){
+                    console.log("Proctor Logged In");
+                    window.location.href = '/peerjs_vid_call/proctor.html?proctor=' + $("#emailId").val();
+                }
+                if(candidate[$("#emailId").val()] == $("#passwordId").val()){
+                    console.log("Candidate Logged In");
+                    window.location.href = '/peerjs_vid_call/candidate.html'
+                }
+                else{
+                    alert("Not in List or Password Not Matching")
+                }
+            }
+            );
+
+            $("#btn2").click(function(event){
+                console.log("Pressed")
+            });
+        </script>
+    </body>
+</html>

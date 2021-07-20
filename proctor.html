@@ -1,0 +1,206 @@
+<html>
+    <head>
+        <title>Proctor</title>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:700,600' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        
+        <link rel="stylesheet" href="./assets/styles.css">
+    </head>
+    <body>
+         <p id="notification" hidden></p>
+        <div id="form">
+         <div class="box">
+         <h1>Enter Exam ID</h1>
+
+         <input id="roomId" name="roomId" placeholder="Room ID" class="email" />
+         <button id="btn1" class="btn">Create Room</button> <!-- End Btn -->
+
+         <button id="btn2">Join Room</button><!-- End Btn2 -->
+         </div> <!-- End Box -->
+         </div>
+        <div id="video_screen" class="main__panel" >
+            <div class="main__videos" >
+               <div class="container-fluid">
+                  <div class="row" id="video-grid">
+                  </div>
+               </div>
+         </div>
+
+         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+         <script src="/peerjs_vid_call/assets/peer.js"></script>
+         <script>
+            let rooms = {"exam1": "proctor1", "exam2": "proctor2"};
+            let getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            let local_stream;
+            let block = $($.parseHTML(`<div class="col-4 col-md-4 card p-2" style="width: 18rem;">
+               <div class="card-body">
+               <h5 class="card-title d-flex justify-content-center">Receiver</h5>
+                  <a href="#" class="btn btn-primary video_btn">Video</a>
+                  <a href="#" class="btn btn-success">Mute</a>
+                  <a href="#" class="btn btn-danger">Leave</a>
+               </div>
+               </div>`))
+
+            let peer;
+            const videoGrid = $('#video-grid')
+
+            //Fade in dashboard box
+            $(document).ready(function(){
+                $('#video_screen').hide();
+                });
+
+
+            function notify(msg){
+                  let notification = document.getElementById("notification")
+                  notification.innerHTML = msg
+                  notification.hidden = false
+                  setTimeout(()=>{
+                     notification.hidden = true;
+                  }, 3000)
+            }
+
+            function hideModal(){
+               $("#notification").hide();
+            }
+
+            function setLocalStream(peer,stream){
+               let myVideoStream
+               const peers = {}
+               navigator.mediaDevices.getUserMedia({
+                  video: true,
+                  audio: true
+                  }).then(stream => {
+                     myVideoStream = stream;
+                     let video = document.createElement('video')
+                     let main_div = document.createElement("div")
+                     main_div.classList.add("col-4","col-md-4","card","p-2")
+                     let card_div = document.createElement("div")
+                     card_div.classList.add("card-body")
+
+                     let head = document.createElement("h5")
+                     head.classList.add("card-title","d-flex","justify-content-center")
+                     head.innerHTML = "Proctor"
+                     let btn = document.createElement("a")
+                     let btn1 = document.createElement("a")
+                     let btn2 = document.createElement("a")
+                     btn.innerHTML = "Video"
+                     btn1.innerHTML = "Audio"
+                     btn2.innerHTML = "Leave"
+                     btn.classList.add("btn","btn-success")
+                     btn1.classList.add("btn","btn-primary")
+                     btn2.classList.add("btn","btn-danger")
+                     addVideoStream(btn, btn1, btn2, head, main_div, card_div, video, stream)
+                  })
+            }
+
+            function addVideoStream(btn, btn1, btn2, head, main_div, card_div, video, stream) {
+               video.srcObject = stream
+               video.classList.add("video");
+               video.addEventListener('loadedmetadata', () => {
+                  var isPlaying = video.currentTime > 0 && !video.paused && !video.ended 
+                     && video.readyState > video.HAVE_CURRENT_DATA;
+                  if (!isPlaying) {
+                  video.play();
+                  }
+               })
+               main_div.append(video)
+               main_div.append(card_div)
+               main_div.append(head)
+               main_div.append(btn)
+               main_div.append(btn1)
+               main_div.append(btn2)
+
+               videoGrid.prepend(main_div)
+
+               //videoGrid.append(video)
+            }
+
+            var myStream;
+            var setOthersStream = function(stream){
+               $('#others-video').srcObject = stream;
+            };
+
+            var setMyStream = function(stream){
+               myStream = stream;
+               $('#video').srcObject = stream;
+            };
+
+            var video_button = document.createElement("video_button");
+            video_button.appendChild(document.createTextNode("Toggle hold"));
+
+            video_button.video_onclick = function(){
+            myStream.getVideoTracks()[0].enabled = !(myStream.getVideoTracks()[0].enabled);
+            }
+
+            var audio_button = document.createElement("audio_button");
+            video_button.appendChild(document.createTextNode("Toggle hold"));
+
+            audio_button.audio_onclick = function(){
+            myStream.getAudioTracks()[0].enabled = !(myStream.getAudioTracks()[0].enabled);
+            }
+
+
+            $("#btn1").click(function(event){
+               const PRE = "SplashGain"
+               const queryString = window.location.search;
+               const urlParams = new URLSearchParams(queryString);
+               const proctor = urlParams.get('proctor')
+               if(rooms[$('#roomId').val()] == proctor){
+                  console.log("Room Created")
+                  room_id = PRE + $('#roomId').val(); 
+                  let peer = new Peer(room_id);
+                  $("#form").hide();
+                  console.log("Hide");
+                  $('#video_screen').show();
+                  peer.on('open', (id)=>{
+                     console.log("Peer Connected with ID: ", id)
+                     hideModal()
+                     getUserMedia({video: true, audio: true}, (stream)=>{
+                         local_stream = stream;
+                         setLocalStream(peer,local_stream)
+                     },(err)=>{
+                         sole.log(err)
+                     })
+                     notify("Waiting for peer to join.")
+                 })
+                 peer.on('call',(call)=>{
+                     call.answer(local_stream);
+                     let template = document.createElement('template');
+                     html = `<div class="col-4 col-md-4 card p-2" style="width: 18rem;">
+                        <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-center">Receiver</h5>
+                           <a href="#" class="btn btn-primary video_btn">Video</a>
+                           <a href="#" class="btn btn-success">Mute</a>
+                           <a href="#" class="btn btn-danger">Leave</a>
+                        </div>
+                        </div>`.trim();
+                     let video = document.createElement('video')
+                     let main_div = document.createElement("div")
+                     main_div.classList.add("col-4","col-md-4","card","p-2")
+                     let card_div = document.createElement("div")
+                     card_div.classList.add("card-body")
+                     let head = document.createElement("h5")
+                     head.classList.add("card-title","d-flex","justify-content-center")
+                     head.innerHTML = "Candidate"
+                     let btn = document.createElement("a")
+                     let btn1 = document.createElement("a")
+                     let btn2 = document.createElement("a")
+                     btn.innerHTML = "Video"
+                     btn1.innerHTML = "Audio"
+                     btn2.innerHTML = "Leave"
+                     btn.classList.add("btn","btn-success")
+                     btn1.classList.add("btn","btn-primary")
+                     btn2.classList.add("btn","btn-danger")
+
+                     call.on('stream', userVideoStream => {addVideoStream(btn, btn1, btn2, head, main_div, card_div, video, userVideoStream)})
+                 })
+
+               } else {
+                  console.log("No Exam Allocated to Proctor")
+               }
+            });
+        </script>
+    </body>
+</html>
